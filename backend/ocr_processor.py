@@ -1,9 +1,25 @@
+
 import cv2
 import numpy as np
 import pytesseract
 import base64
 import os
 import re
+
+class OCRProcessor:
+    def __init__(self):
+        # Configure Tesseract path for Render (Linux)
+        if os.name == 'posix':  # Linux (Render)
+            pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+        elif os.name == 'nt':  # Windows (local)
+            tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+            if os.path.exists(tesseract_path):
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        
+        self.gemini_model = None
+        print("✓ OCR Processor initialized")
+    
+    # ... rest of your methods stay the same ...
 
 class OCRProcessor:
     def __init__(self):
