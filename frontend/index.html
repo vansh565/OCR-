@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Advanced OCR System with RAG - Extract text from images and videos with AI-powered intelligence">
+    <title>OCR Intelligence | AI-Powered Text Extraction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #11152f;
+            --bg-card: rgba(18, 22, 48, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a8c0;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Dark theme variables */
+        [data-theme="dark"] {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #11152f;
+            --bg-card: rgba(18, 22, 48, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a8c0;
+        }
+
+        /* Light theme */
+        [data-theme="light"] {
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: rgba(99, 102, 241, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent);
+            bottom: -200px;
+            right: -200px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.2), transparent);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 28px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 10px;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+        }
+
+        .tab-btn.active::before {
+            width: 100%;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 15px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Preview */
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .preview-container img,
+        .preview-container video {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px var(--accent-glow);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Text Display */
+        .text-display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 20px;
+            padding: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* RAG Section */
+        .query-input textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .query-input textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .answer-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(99, 102, 241, 0.2);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border-left: 4px solid var(--success);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+            z-index: 1500;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            margin-top: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .tab-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        🌙
+    </button>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                 OCR Intelligence
+            </div>
+            <div class="tagline">
+                AI-Powered Text Extraction & Intelligent Query System
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="image"> Image OCR</button>
+            <button class="tab-btn" data-tab="video"> Video OCR</button>
+            <button class="tab-btn" data-tab="rag"> RAG Query</button>
+        </div>
+
+        <div id="image-tab" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                         Upload Image
+                    </div>
+                    <div class="upload-area" id="imageUploadArea">
+                        <div class="upload-icon">🖼️</div>
+                        <p>Click or drag image here</p>
+                        <small>PNG, JPG, JPEG, WEBP (Max 16MB)</small>
+                        <input type="file" id="imageInput" accept="image/*" hidden>
+                    </div>
+                    <div id="imagePreview" class="preview-container"></div>
+                    <button id="processImageBtn" class="btn-primary">
+                         Extract Text
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                         Extracted Text
+                    </div>
+                    <div class="stats" id="stats" style="display: none;">
+                        <div class="stat-item"> <span id="charCount">0</span> characters</div>
+                        <div class="stat-item"> <span id="wordCount">0</span> words</div>
+                    </div>
+                    <div class="text-display" id="ocrText">
+                        <p style="text-align: center; color: var(--text-secondary);">No text extracted yet. Upload an image to begin.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="copyTextBtn" class="btn-secondary" style="background: rgba(99,102,241,0.2); padding: 8px 16px; border-radius: 8px; cursor: pointer;" disabled>📋 Copy</button>
+                        <button id="downloadTextBtn" class="btn-secondary" style="background: rgba(99,102,241,0.2); padding: 8px 16px; border-radius: 8px; cursor: pointer;" disabled>💾 Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="video-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                         Upload Video
+                    </div>
+                    <div class="upload-area" id="videoUploadArea">
+                        <div class="upload-icon"></div>
+                        <p>Click or drag video here</p>
+                        <small>MP4, MOV, AVI, MKV (Max 16MB)</small>
+                        <input type="file" id="videoInput" accept="video/*" hidden>
+                    </div>
+                    <div id="videoPreview" class="preview-container"></div>
+                    <button id="processVideoBtn" class="btn-primary">
+                         Extract Text from Video
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                         Video Text
+                    </div>
+                    <div class="text-display" id="videoText">
+                        <p style="text-align: center; color: var(--text-secondary);">No text extracted yet. Upload a video to begin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rag-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                         Ask Questions
+                    </div>
+                    <div class="query-input">
+                        <textarea id="questionInput" rows="4" placeholder="Ask anything about the extracted text..."></textarea>
+                        <button id="askBtn" class="btn-primary">
+                            Ask Question
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                         Answer
+                    </div>
+                    <div class="answer-box" id="answerBox">
+                        <p style="text-align: center; color: var(--text-secondary);">Answers will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Powered by Tesseract OCR & AI | RAG-Enabled Intelligent Processing
+               Created by Vansh sharma 
+            </p>
+        </footer>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px;">Processing...</p>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let currentText = '';
+        let currentVideoText = '';
+
+        // Theme Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                themeToggle.innerHTML = '🌙';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '☀️';
+            }
+        }
+
+        // Initialize theme
+        document.body.setAttribute('data-theme', 'dark');
+
+        // Tab switching with animation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(`${tab}-tab`).classList.add('active');
+                
+                // Smooth scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Image upload
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#6366f1';
+        });
+        imageUploadArea.addEventListener('dragleave', () => {
+            imageUploadArea.style.borderColor = 'var(--border)';
+        });
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageFile(file);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+            window.currentImageFile = file;
+        }
+
+        // Video upload
+        const videoUploadArea = document.getElementById('videoUploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const videoPreview = document.getElementById('videoPreview');
+
+        videoUploadArea.addEventListener('click', () => videoInput.click());
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                const file = e.target.files[0];
+                const url = URL.createObjectURL(file);
+                videoPreview.innerHTML = `<video controls src="${url}"></video>`;
+                window.currentVideoFile = file;
+            }
+        });
+
+        // Process Image
+        document.getElementById('processImageBtn').addEventListener('click', async () => {
+            if (!window.currentImageFile) {
+                showToast('Please select an image first', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('image', window.currentImageFile);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/ocr/image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                    currentText = data.text;
+                    showToast('Text extracted successfully!', 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error processing image: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Process Video
+        document.getElementById('processVideoBtn').addEventListener('click', async () => {
+            if (!window.currentVideoFile) {
+                showToast('Please select a video first', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('video', window.currentVideoFile);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/ocr/video`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const videoTextDiv = document.getElementById('videoText');
+                    videoTextDiv.innerHTML = `<pre style="white-space: pre-wrap;">${escapeHtml(data.text)}</pre>`;
+                    currentVideoText = data.text;
+                    currentText = data.text;
+                    showToast('Video processed successfully!', 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error processing video: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // RAG Query
+        document.getElementById('askBtn').addEventListener('click', async () => {
+            const question = document.getElementById('questionInput').value.trim();
+            
+            if (!question) {
+                showToast('Please enter a question', 'error');
+                return;
+            }
+            
+            if (!currentText) {
+                showToast('Please extract text from an image or video first', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rag/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayAnswer(data.answer);
+                    showToast('Answer generated!', 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error querying RAG: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Copy Text
+        document.getElementById('copyTextBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentText);
+            showToast('Text copied to clipboard!', 'success');
+        });
+
+        // Download Text
+        document.getElementById('downloadTextBtn').addEventListener('click', () => {
+            const blob = new Blob([currentText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ocr_text_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Text downloaded!', 'success');
+        });
+
+        function displayResults(data) {
+            const ocrDiv = document.getElementById('ocrText');
+            ocrDiv.innerHTML = `<pre style="white-space: pre-wrap;">${escapeHtml(data.text)}</pre>`;
+            
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('charCount').textContent = data.char_count;
+            document.getElementById('wordCount').textContent = data.word_count;
+            
+            document.getElementById('copyTextBtn').disabled = false;
+            document.getElementById('downloadTextBtn').disabled = false;
+        }
+
+        function displayAnswer(answer) {
+            const answerBox = document.getElementById('answerBox');
+            answerBox.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); padding: 20px; border-radius: 12px; border-left: 4px solid #6366f1;">
+                    <div style="font-weight: bold; margin-bottom: 10px;">💡 Answer:</div>
+                    <p style="line-height: 1.6;">${escapeHtml(answer)}</p>
+                </div>
+            `;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.borderLeftColor = type === 'success' ? '#10b981' : '#ef4444';
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>${type === 'success' ? '✓' : '✗'}</span>
+                    <span>${escapeHtml(message)}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Check health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                console.log('Backend status:', data);
+                if (data.gemini_configured) {
+                    showToast('Gemini API connected!', 'success');
+                }
+            } catch (error) {
+                console.error('Backend not reachable:', error);
+                showToast('Backend server not running. Please start the Flask server.', 'error');
+            }
+        }
+        
+        checkHealth();
+    </script>
+</body>
+</html>
