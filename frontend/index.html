@@ -841,7 +841,7 @@
             showLoading();
             
             try {
-                const response = await fetch(`${API_BASE_URL}/rag/query`, {
+                const response = await fetch(`${API_BASE_URL}/chat`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
