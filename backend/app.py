@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from ocr_processor import OCRProcessor
-from rag_engine import RAGEngine
+from .ocr_processor import OCRProcessor
+from .rag_engine import RAGEngine
 import os
 import base64
 import cv2
