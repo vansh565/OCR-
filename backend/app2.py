@@ -18,7 +18,7 @@ CORS(app)
 
 # === CHANGE THIS TO A FRESH KEY ===
 # Get new key from: https://aistudio.google.com/app/apikey
-GEMINI_API_KEY = "AIzaSyBscsgEDiEopzRLT12aMCJF4dCGEVfCiww"   # ←←← REPLACE THIS!
+GEMINI_API_KEY = "   # ←←← REPLACE THIS!
 # ===================================
 
 # Initialize processors
