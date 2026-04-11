@@ -942,7 +942,7 @@
                 const data = await response.json();
                 console.log('Backend status:', data);
                 if (data.gemini_configured) {
-                    showToast('Gemini API connected!', 'success');
+                    showToast('RAG connected!', 'success');
                 }
             } catch (error) {
                 console.error('Backend not reachable:', error);
