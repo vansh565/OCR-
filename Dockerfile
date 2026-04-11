@@ -1,16 +1,16 @@
 FROM python:3.11-slim
 
-# Install Tesseract OCR and dependencies
+# Install Tesseract OCR and dependencies (updated package names)
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy requirements and install
+# Copy requirements from backend folder
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -18,10 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 
-# Create uploads directory
+# Create necessary directories
 RUN mkdir -p backend/uploads
 
-# Expose port
+# Expose the port
 EXPOSE 10000
 
 # Run the application
