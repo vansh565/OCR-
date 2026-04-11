@@ -7,6 +7,7 @@ import base64
 import cv2
 import numpy as np
 import logging
+import tempfile
 from dotenv import load_dotenv   # ← Added for dotenv
 
 # ====================== CONFIG ======================
